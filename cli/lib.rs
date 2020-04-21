@@ -251,6 +251,15 @@ async fn print_file_info(
   Ok(())
 }
 
+fn get_types() -> String {
+  format!(
+    "{}\n{}\n{}",
+    crate::js::DENO_NS_LIB,
+    crate::js::SHARED_GLOBALS_LIB,
+    crate::js::WINDOW_LIB
+  )
+}
+
 async fn info_command(
   flags: Flags,
   file: Option<String>,
@@ -270,7 +279,7 @@ async fn info_command(
 
 async fn install_command(
   flags: Flags,
-  dir: Option<PathBuf>,
+  root: Option<PathBuf>,
   exe_name: String,
   module_url: String,
   args: Vec<String>,
@@ -283,7 +292,7 @@ async fn install_command(
   let main_module = ModuleSpecifier::resolve_url_or_path(&module_url)?;
   let mut worker = create_main_worker(global_state, main_module.clone())?;
   worker.preload_module(&main_module).await?;
-  installer::install(flags, dir, &exe_name, &module_url, args, force)
+  installer::install(flags, root, &exe_name, &module_url, args, force)
     .map_err(ErrBox::from)
 }
 
@@ -369,13 +378,12 @@ async fn bundle_command(
 
 async fn doc_command(
   flags: Flags,
-  source_file: String,
+  source_file: Option<String>,
   json: bool,
   maybe_filter: Option<String>,
 ) -> Result<(), ErrBox> {
   let global_state = GlobalState::new(flags.clone())?;
-  let module_specifier =
-    ModuleSpecifier::resolve_url_or_path(&source_file).unwrap();
+  let source_file = source_file.unwrap_or_else(|| "--builtin".to_string());
 
   impl DocFileLoader for SourceFileFetcher {
     fn load_source_code(
@@ -397,9 +405,16 @@ async fn doc_command(
 
   let loader = Box::new(global_state.file_fetcher.clone());
   let doc_parser = doc::DocParser::new(loader);
-  let parse_result = doc_parser
-    .parse_with_reexports(&module_specifier.to_string())
-    .await;
+
+  let parse_result = if source_file == "--builtin" {
+    doc_parser.parse_source("lib.deno.d.ts", get_types().as_str())
+  } else {
+    let module_specifier =
+      ModuleSpecifier::resolve_url_or_path(&source_file).unwrap();
+    doc_parser
+      .parse_with_reexports(&module_specifier.to_string())
+      .await
+  };
 
   let doc_nodes = match parse_result {
     Ok(nodes) => nodes,
@@ -555,12 +570,12 @@ pub fn main() {
     }
     DenoSubcommand::Info { file } => info_command(flags, file).boxed_local(),
     DenoSubcommand::Install {
-      dir,
+      root,
       exe_name,
       module_url,
       args,
       force,
-    } => install_command(flags, dir, exe_name, module_url, args, force)
+    } => install_command(flags, root, exe_name, module_url, args, force)
       .boxed_local(),
     DenoSubcommand::Repl => run_repl(flags).boxed_local(),
     DenoSubcommand::Run { script } => run_command(flags, script).boxed_local(),
@@ -580,12 +595,7 @@ pub fn main() {
       return;
     }
     DenoSubcommand::Types => {
-      let types = format!(
-        "{}\n{}\n{}",
-        crate::js::DENO_NS_LIB,
-        crate::js::SHARED_GLOBALS_LIB,
-        crate::js::WINDOW_LIB
-      );
+      let types = get_types();
       if let Err(e) = write_to_stdout_ignore_sigpipe(types.as_bytes()) {
         eprintln!("{}", e);
         std::process::exit(1);

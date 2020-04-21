@@ -5,22 +5,12 @@ import { CallbackWithError } from "./_fs_common.ts";
 export function copyFile(
   source: string,
   destination: string,
-  callback: CallbackWithError,
+
+  callback: CallbackWithError
 ): void {
-  new Promise(async (resolve, reject) => {
-    try {
-      await Deno.copyFile(source, destination);
-      resolve();
-    } catch (err) {
-      reject(err);
-    }
-  })
-    .then(() => {
-      callback();
-    })
-    .catch((err) => {
-      callback(err);
-    });
+  Deno.copyFile(source, destination)
+    .then(() => callback())
+    .catch(callback);
 }
 
 export function copyFileSync(source: string, destination: string): void {
