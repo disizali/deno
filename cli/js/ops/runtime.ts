@@ -14,6 +14,7 @@ export interface Start {
   location: string; // Absolute URL.
   repl: boolean;
   debugFlag: boolean;
+  errorLevel: boolean;
   depsFlag: boolean;
   typesFlag: boolean;
   versionFlag: boolean;

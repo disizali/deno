@@ -2,13 +2,18 @@
 
 let logDebug = false;
 let logSource = "JS";
-
+export let errorLevel = false;
 // @internal
 export function setLogDebug(debug: boolean, source?: string): void {
   logDebug = debug;
   if (source) {
     logSource = source;
   }
+}
+
+// @internal
+export function setErrorLevel(level: boolean): void {
+  errorLevel = level;
 }
 
 export function log(...args: unknown[]): void {

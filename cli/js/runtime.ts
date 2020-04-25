@@ -41,6 +41,7 @@ export function start(source?: string): Start {
   setVersions(s.denoVersion, s.v8Version, s.tsVersion);
   setBuildInfo(s.os, s.arch);
   util.setLogDebug(s.debugFlag, source);
+  util.setErrorLevel(s.errorLevel);
 
   setPrepareStackTrace(Error);
   return s;
