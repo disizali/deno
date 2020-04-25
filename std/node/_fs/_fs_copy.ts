@@ -5,6 +5,7 @@ import { CallbackWithError } from "./_fs_common.ts";
 export function copyFile(
   source: string,
   destination: string,
+
   callback: CallbackWithError
 ): void {
   Deno.copyFile(source, destination)

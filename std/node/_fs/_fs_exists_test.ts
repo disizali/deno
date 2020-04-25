@@ -2,7 +2,6 @@
 
 import { assertEquals } from "../../testing/asserts.ts";
 import { exists, existsSync } from "./_fs_exists.ts";
-
 const { test } = Deno;
 
 test(async function existsFile() {
