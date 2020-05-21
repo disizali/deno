@@ -14,4 +14,4 @@ export { mkdir, mkdirSync } from "./_fs/_fs_mkdir.ts";
 export { copyFile, copyFileSync } from "./_fs/_fs_copy.ts";
 export { writeFile, writeFileSync } from "./_fs/_fs_writeFile.ts";
 import * as promises from "./_fs/promises/mod.ts";
-export { promises }
+export { promises };
